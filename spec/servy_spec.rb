@@ -55,7 +55,7 @@ RSpec.describe 'Servy App' do
     end
 
     it 'Responds to format_response properly' do
-      conv = { method: "GET", path: "/wildthings", resp_body: "" }
+      conv = { method: "GET", path: "/wildthings", resp_body: "Bears, Lions, Tigers" }
       expect {puts subject.format_response(conv)}.to output(
         <<~MESSAGE
         HTTP/1.1 200 OK

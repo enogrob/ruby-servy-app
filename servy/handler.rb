@@ -1,9 +1,9 @@
 module ServyHandler
   def self.handle(request)
-    conv = parse(request)
-    conv = route(conv)
-    conv = format_response(conv)
-    conv
+    _ = parse(request)
+    _ = route(_)
+    _ = format_response(_)
+    _
   end
 
   def self.parse(request)
@@ -12,22 +12,22 @@ module ServyHandler
     .split("\n")\
     .first\
     .split(" ")
+
     {method: method, path: path, resp_body: ""}
   end
 
   def self.route(conv)
-    # TODO: Create a new map that also has the response body:
-    conv = { method: "GET", path: "/wildthings", resp_body: "Bears, Lions, Tigers" }
+    conv[:resp_body] = "Bears, Lions, Tigers"
+    conv
   end
 
   def self.format_response(conv)
-    # TODO: Use values in the map to create an HTTP response string:
-    <<-"END".gsub(/^ {4}/, '')
+    <<~"END"
     HTTP/1.1 200 OK
     Content-Type: text/html
-    Content-Length: 20
+    Content-Length: #{conv[:resp_body].length}
 
-    Bears, Lions, Tigers
+    #{conv[:resp_body]}
     END
   end
 
