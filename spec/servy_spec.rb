@@ -52,6 +52,10 @@ RSpec.describe 'Servy App' do
       conv = subject.route(conv)
       expect(conv).to be_instance_of(Hash)
       expect(conv).to match({ method: "GET", path: "/wildthings", resp_body: "Bears, Lions, Tigers" })
+      conv = { method: "GET", path: "/bears", resp_body: "" }
+      conv = subject.route(conv)
+      expect(conv).to be_instance_of(Hash)
+      expect(conv).to match({ method: "GET", path: "/bears", resp_body: "Teddy, Smokey, Paddington" })
     end
 
     it 'Responds to format_response properly' do

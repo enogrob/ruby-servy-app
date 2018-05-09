@@ -2,8 +2,14 @@ module ServyHandler
   def self.handle(request)
     _ = parse(request)
     _ = route(_)
+    _ = log(_)
     _ = format_response(_)
     _
+  end
+
+  def self.log(conv)
+    conv.inspect
+    conv
   end
 
   def self.parse(request)
@@ -17,7 +23,11 @@ module ServyHandler
   end
 
   def self.route(conv)
-    conv[:resp_body] = "Bears, Lions, Tigers"
+    if conv[:method] == "GET" && conv[:path] == "/wildthings"
+      conv[:resp_body] = "Bears, Lions, Tigers"
+    elsif conv[:method] == "GET" && conv[:path] == "/bears"
+      conv[:resp_body] = "Teddy, Smokey, Paddington"
+    end
     conv
   end
 
