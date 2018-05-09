@@ -7,8 +7,12 @@ module ServyHandler
   end
 
   def self.parse(request)
-    # TODO: Parse the request string into a map:
-    conv = { method: "GET", path: "/wildthings", resp_body: "" }
+    method, path, resp_body =
+    request\
+    .split("\n")\
+    .first\
+    .split(" ")
+    {method: method, path: path, resp_body: ""}
   end
 
   def self.route(conv)

@@ -35,8 +35,14 @@ RSpec.describe 'Servy App' do
     end
 
     it 'Responds to parse properly' do
-      conv = { method: "GET", path: "/wildthings", resp_body: "" }
-      conv = subject.parse(conv)
+      request = <<~"REQUEST"
+      GET /wildthings HTTP/1.1
+      Host: example.com
+      User-Agent: ExampleBrowser/1.0
+      Accept: */*
+
+      REQUEST
+      conv = subject.parse(request)
       expect(conv).to be_instance_of(Hash)
       expect(conv).to match({ method: "GET", path: "/wildthings", resp_body: "" })
     end
