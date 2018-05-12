@@ -1,15 +1,13 @@
 module ServyHandler
   def self.handle(request)
     _ = parse(request)
-    _ = route(_)
+    _ = rewrite_path(_)
     _ = log(_)
+    _ = route(_)
+    _ = emojify(_)
+    _ = track(_)
     _ = format_response(_)
     _
-  end
-
-  def self.log(conv)
-    puts conv.inspect
-    conv
   end
 
   def self.parse(request)
@@ -22,22 +20,54 @@ module ServyHandler
     {method: method, path: path, resp_body: "", status: nil}
   end
 
+  def self.rewrite_path(conv)
+    case
+    when conv[:path] =~ /\/bears\?id=(\d)/
+      conv[:path] = "/bears/#{$1}"
+    when conv[:path] =~ /\/wildlife/
+      conv[:path] = "/wildthings"
+    end
+    conv
+  end
+
+  def self.log(conv)
+    puts conv.inspect
+    conv
+  end
+
   def self.route(conv)
-    if conv[:method] == "GET" && conv[:path] == "/wildthings"
+    case
+    when conv[:method] == "GET" && conv[:path] == "/wildthings"
       conv[:resp_body] = "Bears, Lions, Tigers"
       conv[:status] = 200
-    elsif conv[:method] == "GET" && conv[:path] == "/bears"
+    when conv[:method] == "GET" && conv[:path] == "/bears"
       conv[:resp_body] = "Teddy, Smokey, Paddington"
       conv[:status] = 200
-    elsif conv[:method] == "GET" && conv[:path] =~ /\/bears\/(\d)/
+    when conv[:method] == "GET" && conv[:path] =~ /\/bears\/(\d)/
       conv[:resp_body] = "Bear #{$1}"
       conv[:status] = 200
-    elsif conv[:method] == "DELETE" && conv[:path] =~ /\/bears\/(\d)/
+    when conv[:method] == "DELETE" && conv[:path] =~ /\/bears\/(\d)/
       conv[:resp_body] = "Deleting a bear is forbidden!"
       conv[:status] = 403
     else
       conv[:resp_body] = "No #{conv[:path]} here!"
       conv[:status] = 404
+    end
+    conv
+  end
+
+  def self.emojify(conv)
+    if conv[:status] == 200
+      emojies = "🎉" * 5
+      body = emojies + "\n" + conv[:resp_body] + "\n" + emojies
+      conv[:resp_body]=body
+    end
+    conv
+  end
+
+  def self.track(conv)
+    if conv[:status] == 404
+      puts "Warning: #{conv[:path]} is on the loose!"
     end
     conv
   end
@@ -51,6 +81,8 @@ module ServyHandler
     #{conv[:resp_body]}
     END
   end
+
+  private
 
   def self.status_reason(code)
     {
