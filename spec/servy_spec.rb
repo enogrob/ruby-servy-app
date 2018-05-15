@@ -79,6 +79,13 @@ RSpec.describe 'Servy App' do
       conv = subject.route(conv)
       expect(conv).to match({ method: "GET", path: "/bears", resp_body: "Teddy, Smokey, Paddington", status: 200 })
 
+      conv = { method: "GET", path: "/about", resp_body: "", status: nil }
+      conv = subject.route(conv)
+      file = File.open("pages/about.html", "r")
+      content = file.read
+      file.close
+      expect(conv).to match({ method: "GET", path: "/about", resp_body: content, status: 200 })
+
       conv = { method: "GET", path: "/bears/1", resp_body: "", status: nil }
       conv = subject.route(conv)
       expect(conv).to match({ method: "GET", path: "/bears/1", resp_body: "Bear 1", status: 200 })

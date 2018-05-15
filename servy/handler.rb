@@ -43,6 +43,23 @@ module ServyHandler
     when conv[:method] == "GET" && conv[:path] == "/bears"
       conv[:resp_body] = "Teddy, Smokey, Paddington"
       conv[:status] = 200
+    when conv[:method] == "GET" && conv[:path] == "/about"
+      begin
+        file = File.expand_path("pages").concat("/about.html")
+        puts file
+        f = File.open(file)
+      rescue Errno::ENOENT => e
+        conv[:resp_body] = "File not found!"
+        conv[:status] = 404
+      rescue Exception => e
+        conv[:resp_body] = "#{e.message}"
+        conv[:status] = 500
+      else
+        content = f.read
+        conv[:resp_body] = content
+        conv[:status] = 200
+        f.close
+      end
     when conv[:method] == "GET" && conv[:path] =~ /\/bears\/(\d)/
       conv[:resp_body] = "Bear #{$1}"
       conv[:status] = 200
@@ -74,11 +91,11 @@ module ServyHandler
 
   def self.format_response(conv)
     <<~"END"
-    HTTP/1.1 #{conv[:status]} #{status_reason(conv[:status])}
-    Content-Type: text/html
-    Content-Length: #{conv[:resp_body].length}
+      HTTP/1.1 #{conv[:status]} #{status_reason(conv[:status])}
+      Content-Type: text/html
+      Content-Length: #{conv[:resp_body].length}
 
-    #{conv[:resp_body]}
+      #{conv[:resp_body]}
     END
   end
 
