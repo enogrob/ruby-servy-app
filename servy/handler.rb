@@ -1,4 +1,21 @@
+require 'logger'
+
 module ServyHandler
+=begin
+  handles HTTP requests.
+=end
+
+  def self.pages_path
+    @pages_path ||= File.expand_path("pages")
+  end
+
+  def self.logger
+    @logger ||= Logger.new(STDOUT)
+  end
+
+=begin
+  Trasnforms the request into a response
+=end
   def self.handle(request)
     _ = parse(request)
     _ = rewrite_path(_)
@@ -45,8 +62,23 @@ module ServyHandler
       conv[:status] = 200
     when conv[:method] == "GET" && conv[:path] == "/about"
       begin
-        file = File.expand_path("pages").concat("/about.html")
-        puts file
+        file = pages_path + "/about.html"
+        f = File.open(file)
+      rescue Errno::ENOENT => e
+        conv[:resp_body] = "File not found!"
+        conv[:status] = 404
+      rescue Exception => e
+        conv[:resp_body] = "#{e.message}"
+        conv[:status] = 500
+      else
+        content = f.read
+        conv[:resp_body] = content
+        conv[:status] = 200
+        f.close
+      end
+    when conv[:method] == "GET" && conv[:path] =~ /\/pages\/(\w+)/
+      begin
+        file = pages_path + "/#{$1}.html"
         f = File.open(file)
       rescue Errno::ENOENT => e
         conv[:resp_body] = "File not found!"
@@ -82,9 +114,12 @@ module ServyHandler
     conv
   end
 
+=begin
+  Logs 404 requests.
+=end
   def self.track(conv)
     if conv[:status] == 404
-      puts "Warning: #{conv[:path]} is on the loose!"
+      logger.warn "#{conv[:path]} is on the loose!"
     end
     conv
   end

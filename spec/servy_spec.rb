@@ -8,6 +8,8 @@ RSpec.describe 'Servy App' do
   let!(:subject) { handler }
 
     it 'Responds to proper methods' do
+        expect(subject).to respond_to(:pages_path)
+        expect(subject).to respond_to(:logger)
         expect(subject).to respond_to(:handle)
         expect(subject).to respond_to(:parse)
         expect(subject).to respond_to(:rewrite_path)
@@ -86,6 +88,13 @@ RSpec.describe 'Servy App' do
       file.close
       expect(conv).to match({ method: "GET", path: "/about", resp_body: content, status: 200 })
 
+      conv = { method: "GET", path: "/pages/contact", resp_body: "", status: nil }
+      conv = subject.route(conv)
+      file = File.open("pages/contact.html", "r")
+      content = file.read
+      file.close
+      expect(conv).to match({ method: "GET", path: "/pages/contact", resp_body: content, status: 200 })
+
       conv = { method: "GET", path: "/bears/1", resp_body: "", status: nil }
       conv = subject.route(conv)
       expect(conv).to match({ method: "GET", path: "/bears/1", resp_body: "Bear 1", status: 200 })
@@ -106,11 +115,8 @@ RSpec.describe 'Servy App' do
 
     it 'Responds to track properly' do
       conv = { method: "GET", path: "/wild", resp_body: "", status: 404 }
-      expect {subject.track(conv)}.to output(
-        <<~MESSAGE
-        Warning: /wild is on the loose!
-        MESSAGE
-      ).to_stdout
+      subject.logger.formatter = proc {|severity, datetime, progname, msg| "#{msg}\n"}
+      expect{subject.track(conv)}.to output("/wild is on the loose!\n").to_stdout_from_any_process
     end
 
     it 'Responds to format_response properly' do
