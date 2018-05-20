@@ -1,19 +1,72 @@
 
 require_relative '../servy/handler'
+require_relative '../servy/plugins'
+require_relative '../servy/parser'
 
 RSpec.describe 'Servy App' do
   let!(:handler) { ServyHandler }
+
+  context 'ServyParser' do
+    let!(:subject) { ServyParser }
+
+    it 'Responds to proper methods' do
+      expect(subject).to respond_to(:parse)
+    end
+
+    it 'Responds to parse properly' do
+      request = <<~"REQUEST"
+      GET /wildthings HTTP/1.1
+      Host: example.com
+      User-Agent: ExampleBrowser/1.0
+      Accept: */*
+
+      REQUEST
+      conv = subject.parse(request)
+      expect(conv).to match({ method: "GET", path: "/wildthings", resp_body: "", status: nil})
+    end
+  end
+
+  context 'ServyPlugins' do
+    let!(:subject) { ServyPlugins }
+
+    it 'Responds to proper methods' do
+      expect(subject).to respond_to(:logger)
+      expect(subject).to respond_to(:rewrite_path)
+      expect(subject).to respond_to(:log)
+      expect(subject).to respond_to(:track)
+    end
+
+    it 'Responds to rewrite_path properly' do
+      conv = { method: "GET", path: "/bears?id=1", resp_body: "", status: nil }
+      conv = subject.rewrite_path(conv)
+      expect(conv).to match({ method: "GET", path: "/bears/1", resp_body: "", status: nil })
+      conv = { method: "GET", path: "/wildlife", resp_body: "", status: nil }
+      conv = subject.rewrite_path(conv)
+      expect(conv).to match({ method: "GET", path: "/wildthings", resp_body: "", status: nil })
+    end
+
+    it 'Responds to log properly' do
+      conv = { method: "GET", path: "/wildthings", resp_body: "Bears, Lions, Tigers" }
+      expect {subject.log(conv)}.to output(
+                                        <<~MESSAGE
+        {:method=>\"GET\", :path=>\"/wildthings\", :resp_body=>\"Bears, Lions, Tigers\"}
+                                    MESSAGE
+                                    ).to_stdout
+    end
+
+    it 'Responds to track properly' do
+      conv = { method: "GET", path: "/wild", resp_body: "", status: 404 }
+      subject.logger.formatter = proc {|severity, datetime, progname, msg| "#{msg}\n"}
+      expect{subject.track(conv)}.to output("/wild is on the loose!\n").to_stdout_from_any_process
+    end
+  end
 
   context 'ServyHandler' do
   let!(:subject) { handler }
 
     it 'Responds to proper methods' do
         expect(subject).to respond_to(:pages_path)
-        expect(subject).to respond_to(:logger)
         expect(subject).to respond_to(:handle)
-        expect(subject).to respond_to(:parse)
-        expect(subject).to respond_to(:rewrite_path)
-        expect(subject).to respond_to(:log)
         expect(subject).to respond_to(:route)
         expect(subject).to respond_to(:emojify)
         expect(subject).to respond_to(:format_response)
@@ -38,36 +91,6 @@ RSpec.describe 'Servy App' do
         🎉🎉🎉🎉🎉
         Bears, Lions, Tigers
         🎉🎉🎉🎉🎉
-        MESSAGE
-      ).to_stdout
-    end
-
-    it 'Responds to parse properly' do
-      request = <<~"REQUEST"
-      GET /wildthings HTTP/1.1
-      Host: example.com
-      User-Agent: ExampleBrowser/1.0
-      Accept: */*
-
-      REQUEST
-      conv = subject.parse(request)
-      expect(conv).to match({ method: "GET", path: "/wildthings", resp_body: "", status: nil})
-    end
-
-    it 'Responds to rewrite_path properly' do
-      conv = { method: "GET", path: "/bears?id=1", resp_body: "", status: nil }
-      conv = subject.rewrite_path(conv)
-      expect(conv).to match({ method: "GET", path: "/bears/1", resp_body: "", status: nil })
-      conv = { method: "GET", path: "/wildlife", resp_body: "", status: nil }
-      conv = subject.rewrite_path(conv)
-      expect(conv).to match({ method: "GET", path: "/wildthings", resp_body: "", status: nil })
-    end
-
-    it 'Responds to log properly' do
-      conv = { method: "GET", path: "/wildthings", resp_body: "Bears, Lions, Tigers" }
-      expect {subject.log(conv)}.to output(
-        <<~MESSAGE
-        {:method=>\"GET\", :path=>\"/wildthings\", :resp_body=>\"Bears, Lions, Tigers\"}
         MESSAGE
       ).to_stdout
     end
@@ -111,12 +134,6 @@ RSpec.describe 'Servy App' do
     it 'Responds to emojify properly' do
       conv = { method: "GET", path: "/wildlife", resp_body: "Bears, Lions, Tigers", status: 200 }
       expect(subject.emojify(conv)).to match({ method: "GET", path: "/wildlife", resp_body: "🎉🎉🎉🎉🎉\nBears, Lions, Tigers\n🎉🎉🎉🎉🎉", status: 200 })
-    end
-
-    it 'Responds to track properly' do
-      conv = { method: "GET", path: "/wild", resp_body: "", status: 404 }
-      subject.logger.formatter = proc {|severity, datetime, progname, msg| "#{msg}\n"}
-      expect{subject.track(conv)}.to output("/wild is on the loose!\n").to_stdout_from_any_process
     end
 
     it 'Responds to format_response properly' do

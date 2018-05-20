@@ -1,6 +1,7 @@
-require 'logger'
-
 module ServyHandler
+  require_relative 'plugins'
+  require_relative 'parser'
+
 =begin
   handles HTTP requests.
 =end
@@ -9,47 +10,18 @@ module ServyHandler
     @pages_path ||= File.expand_path("pages")
   end
 
-  def self.logger
-    @logger ||= Logger.new(STDOUT)
-  end
-
 =begin
   Trasnforms the request into a response
 =end
   def self.handle(request)
-    _ = parse(request)
-    _ = rewrite_path(_)
-    _ = log(_)
+    _ = ServyParser.parse(request)
+    _ = ServyPlugins.rewrite_path(_)
+    _ = ServyPlugins.log(_)
     _ = route(_)
     _ = emojify(_)
-    _ = track(_)
+    _ = ServyPlugins.track(_)
     _ = format_response(_)
     _
-  end
-
-  def self.parse(request)
-    method, path, resp_body =
-    request\
-    .split("\n")\
-    .first\
-    .split(" ")
-
-    {method: method, path: path, resp_body: "", status: nil}
-  end
-
-  def self.rewrite_path(conv)
-    case
-    when conv[:path] =~ /\/bears\?id=(\d)/
-      conv[:path] = "/bears/#{$1}"
-    when conv[:path] =~ /\/wildlife/
-      conv[:path] = "/wildthings"
-    end
-    conv
-  end
-
-  def self.log(conv)
-    puts conv.inspect
-    conv
   end
 
   def self.route(conv)
@@ -110,16 +82,6 @@ module ServyHandler
       emojies = "🎉" * 5
       body = emojies + "\n" + conv[:resp_body] + "\n" + emojies
       conv[:resp_body]=body
-    end
-    conv
-  end
-
-=begin
-  Logs 404 requests.
-=end
-  def self.track(conv)
-    if conv[:status] == 404
-      logger.warn "#{conv[:path]} is on the loose!"
     end
     conv
   end
