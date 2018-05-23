@@ -1,4 +1,6 @@
 module ServyParser
+  require_relative 'conv'
+
   def self.parse(request)
     method, path, resp_body =
         request\
@@ -6,6 +8,6 @@ module ServyParser
     .first\
     .split(" ")
 
-    {method: method, path: path, resp_body: "", status: nil}
+    ServyConv::Conv.new(method, path, "", nil)
   end
 end

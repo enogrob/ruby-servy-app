@@ -2,6 +2,7 @@
 require_relative '../servy/handler'
 require_relative '../servy/plugins'
 require_relative '../servy/parser'
+require_relative '../servy/conv'
 
 RSpec.describe 'Servy App' do
   let!(:handler) { ServyHandler }
@@ -22,7 +23,7 @@ RSpec.describe 'Servy App' do
 
       REQUEST
       conv = subject.parse(request)
-      expect(conv).to match({ method: "GET", path: "/wildthings", resp_body: "", status: nil})
+      expect(conv).to match(ServyConv::Conv.new( "GET", "/wildthings", "", nil))
     end
   end
 
@@ -70,7 +71,6 @@ RSpec.describe 'Servy App' do
         expect(subject).to respond_to(:route)
         expect(subject).to respond_to(:emojify)
         expect(subject).to respond_to(:format_response)
-        expect(subject).to respond_to(:status_reason)
     end
 
     it 'Responds to handle properly' do
@@ -84,7 +84,7 @@ RSpec.describe 'Servy App' do
       response = subject.handle(request)
       expect {puts response}.to output(
         <<~MESSAGE
-        HTTP/1.1 200 OK
+        HTTP/1.1 200 OK 
         Content-Type: text/html
         Content-Length: 32
 
@@ -140,13 +140,22 @@ RSpec.describe 'Servy App' do
       conv = { method: "GET", path: "/wildthings", resp_body: "Bears, Lions, Tigers", status: 200}
       expect {puts subject.format_response(conv)}.to output(
         <<~MESSAGE
-        HTTP/1.1 200 OK
+        HTTP/1.1 200 OK 
         Content-Type: text/html
         Content-Length: 20
 
         Bears, Lions, Tigers
         MESSAGE
       ).to_stdout
+    end
+  end
+
+  context 'ServyConv' do
+    let!(:subject) { ServyConv }
+
+    it 'Responds to proper methods' do
+      expect(subject).to respond_to(:full_status)
+      expect(subject).to respond_to(:status_reason)
     end
   end
 end

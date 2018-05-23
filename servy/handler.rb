@@ -1,6 +1,7 @@
 module ServyHandler
   require_relative 'plugins'
   require_relative 'parser'
+  require_relative 'conv'
 
 =begin
   handles HTTP requests.
@@ -88,7 +89,7 @@ module ServyHandler
 
   def self.format_response(conv)
     <<~"END"
-      HTTP/1.1 #{conv[:status]} #{status_reason(conv[:status])}
+      HTTP/1.1 #{ServyConv::full_status(conv)} 
       Content-Type: text/html
       Content-Length: #{conv[:resp_body].length}
 
@@ -98,15 +99,5 @@ module ServyHandler
 
   private
 
-  def self.status_reason(code)
-    {
-      200 => "OK",
-      201 => "Created",
-      401 => "Unauthorized",
-      403 => "Forbidden",
-      404 => "Not Found",
-      500 => "Internal Server Error"
-    }[code]
-  end
 
 end
