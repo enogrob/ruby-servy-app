@@ -12,6 +12,7 @@ RSpec.describe 'Servy App' do
 
     it 'Responds to proper methods' do
       expect(subject).to respond_to(:parse)
+      expect(subject).to respond_to(:parse_params)
     end
 
     it 'Responds to parse properly' do
@@ -23,7 +24,27 @@ RSpec.describe 'Servy App' do
 
       REQUEST
       conv = subject.parse(request)
-      expect(conv).to match(ServyConv::Conv.new( "GET", "/wildthings", "", nil))
+      expect(conv).to match(ServyConv::Conv.new( "GET", "/wildthings", nil, "", nil))
+
+      request = <<~"REQUEST"
+      GET /wildthings HTTP/1.1
+      Host: example.com
+      User-Agent: ExampleBrowser/1.0
+      Accept: */*
+
+      name=Baloo&type=Brown
+      REQUEST
+      conv = subject.parse(request)
+      params = {"name" => "Baloo", "type" => "Brown"}
+      expect(conv).to match(ServyConv::Conv.new( "GET", "/wildthings", params, "", nil))
+    end
+
+    it 'Responds to params_string properly' do
+      params_string = "name=Baloo&type=Brown\n"
+
+      conv = subject.parse_params(params_string)
+      params = {"name" => "Baloo", "type" => "Brown"}
+      expect(conv).to match(params)
     end
   end
 

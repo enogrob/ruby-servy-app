@@ -1,5 +1,5 @@
 module ServyConv
-  Conv = Struct.new(:method, :path, :resp_body, :status) do
+  Conv = Struct.new(:method, :path, :params, :resp_body, :status) do
   end
 
   def self.full_status(conv)

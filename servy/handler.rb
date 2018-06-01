@@ -33,6 +33,9 @@ module ServyHandler
     when conv[:method] == "GET" && conv[:path] == "/bears"
       conv[:resp_body] = "Teddy, Smokey, Paddington"
       conv[:status] = 200
+    when conv[:method] == "POST" && conv[:path] == "/bears"
+      conv[:resp_body] = "Created a #{conv.params[:type]} bear named #{conv.params[:name]}"
+      conv[:status] = 201
     when conv[:method] == "GET" && conv[:path] == "/about"
       begin
         file = pages_path + "/about.html"
