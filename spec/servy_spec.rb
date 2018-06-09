@@ -13,6 +13,7 @@ RSpec.describe 'Servy App' do
     it 'Responds to proper methods' do
       expect(subject).to respond_to(:parse)
       expect(subject).to respond_to(:parse_params)
+      expect(subject).to respond_to(:parse_headers)
     end
 
     it 'Responds to parse properly' do
@@ -24,7 +25,8 @@ RSpec.describe 'Servy App' do
 
       REQUEST
       conv = subject.parse(request)
-      expect(conv).to match(ServyConv::Conv.new( "GET", "/wildthings", nil, "", nil))
+      headers = {"Host"=>"example.com", "User-Agent"=>"ExampleBrowser/1.0", "Accept"=>"*/*"}
+      expect(conv).to match(ServyConv::Conv.new( "GET", "/wildthings", nil, headers, "", nil))
 
       request = <<~"REQUEST"
       GET /wildthings HTTP/1.1
@@ -35,16 +37,24 @@ RSpec.describe 'Servy App' do
       name=Baloo&type=Brown
       REQUEST
       conv = subject.parse(request)
+      headers = {"Host"=>"example.com", "User-Agent"=>"ExampleBrowser/1.0", "Accept"=>"*/*"}
       params = {"name" => "Baloo", "type" => "Brown"}
-      expect(conv).to match(ServyConv::Conv.new( "GET", "/wildthings", params, "", nil))
+      expect(conv).to match(ServyConv::Conv.new( "GET", "/wildthings", params, headers, "", nil))
     end
 
-    it 'Responds to params_string properly' do
+    it 'Responds to parse_params properly' do
       params_string = "name=Baloo&type=Brown\n"
 
       conv = subject.parse_params(params_string)
       params = {"name" => "Baloo", "type" => "Brown"}
       expect(conv).to match(params)
+    end
+
+    it 'Responds to parse_headers properly' do
+      header_lines = ["Host: example.com", "User-Agent: ExampleBrowser/1.0", "Accept: */*"]
+      headers_conv = {"Host"=>"example.com", "User-Agent"=>"ExampleBrowser/1.0", "Accept"=>"*/*"}
+      headers = subject.parse_headers(header_lines)
+      expect(headers_conv).to match(headers)
     end
   end
 
