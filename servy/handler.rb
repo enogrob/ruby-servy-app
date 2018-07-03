@@ -2,6 +2,7 @@ module ServyHandler
   require_relative 'plugins'
   require_relative 'parser'
   require_relative 'conv'
+  require_relative 'bear_controller'
 
 =begin
   handles HTTP requests.
@@ -31,11 +32,9 @@ module ServyHandler
       conv[:resp_body] = "Bears, Lions, Tigers"
       conv[:status] = 200
     when conv[:method] == "GET" && conv[:path] == "/bears"
-      conv[:resp_body] = "Teddy, Smokey, Paddington"
-      conv[:status] = 200
+      BearController::index(conv)
     when conv[:method] == "POST" && conv[:path] == "/bears"
-      conv[:resp_body] = "Created a #{conv.params[:type]} bear named #{conv.params[:name]}"
-      conv[:status] = 201
+      BearController::create(conv)
     when conv[:method] == "GET" && conv[:path] == "/about"
       begin
         file = pages_path + "/about.html"
@@ -69,8 +68,7 @@ module ServyHandler
         f.close
       end
     when conv[:method] == "GET" && conv[:path] =~ /\/bears\/(\d)/
-      conv[:resp_body] = "Bear #{$1}"
-      conv[:status] = 200
+      BearController::show(conv, $1)
     when conv[:method] == "DELETE" && conv[:path] =~ /\/bears\/(\d)/
       conv[:resp_body] = "Deleting a bear is forbidden!"
       conv[:status] = 403

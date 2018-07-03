@@ -133,7 +133,7 @@ RSpec.describe 'Servy App' do
 
       conv = { method: "GET", path: "/bears", resp_body: "", status: nil }
       conv = subject.route(conv)
-      expect(conv).to match({ method: "GET", path: "/bears", resp_body: "Teddy, Smokey, Paddington", status: 200 })
+      expect(conv).to match({ method: "GET", path: "/bears", resp_body: "<ul><li>Brutus - Grizzly<</li><li>Kenai - Grizzly<</li><li>Scarface - Grizzly<</li></ul>", status: 200 })
 
       conv = { method: "GET", path: "/about", resp_body: "", status: nil }
       conv = subject.route(conv)
@@ -151,7 +151,7 @@ RSpec.describe 'Servy App' do
 
       conv = { method: "GET", path: "/bears/1", resp_body: "", status: nil }
       conv = subject.route(conv)
-      expect(conv).to match({ method: "GET", path: "/bears/1", resp_body: "Bear 1", status: 200 })
+      expect(conv).to match({ method: "GET", path: "/bears/1", resp_body: "<h1>Bear 1: Teddy</h1>", status: 200 })
 
       conv = { method: "DELETE", path: "/bears/1", resp_body: "", status: nil }
       conv = subject.route(conv)
