@@ -70,8 +70,7 @@ module ServyHandler
     when conv[:method] == "GET" && conv[:path] =~ /\/bears\/(\d)/
       BearController::show(conv, $1)
     when conv[:method] == "DELETE" && conv[:path] =~ /\/bears\/(\d)/
-      conv[:resp_body] = "Deleting a bear is forbidden!"
-      conv[:status] = 403
+      BearController::delete(conv, $1)
     else
       conv[:resp_body] = "No #{conv[:path]} here!"
       conv[:status] = 404

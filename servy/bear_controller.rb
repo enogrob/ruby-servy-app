@@ -26,6 +26,11 @@ module BearController
     conv[:status] = 201
   end
 
+  def self.delete(conv, id)
+    conv[:resp_body] = "Deleting a bear is forbidden!"
+    conv[:status] = 403
+  end
+
   private
 
   def self.bear_item(bear)
